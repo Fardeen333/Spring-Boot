@@ -4,9 +4,13 @@ import com.codingShuttleSpringWeb.SpringWebTutorial.dto.EmployeeDTO;
 import com.codingShuttleSpringWeb.SpringWebTutorial.entities.EmployeeEntity;
 import com.codingShuttleSpringWeb.SpringWebTutorial.repositories.EmployeeRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class EmployeeService {
@@ -19,15 +23,10 @@ public class EmployeeService {
         this.modelMapper = modelMapper;
     }
 
-    public EmployeeDTO getEmployeeById(Long id) {
-        EmployeeEntity employeeEntity = employeeRepository.findById(id).orElse(null);
-        if(employeeEntity == null){
-            throw new RuntimeException("Employee not found with id: " + id);
-        }
-        // one way
-        //return new EmployeeDTO(employeeEntity.getId(), employeeEntity.getName(), employeeEntity.getEmail(), employeeEntity.getAge(), employeeEntity.getDateOfJoining(),employeeEntity.getIsActive());
+    public Optional<EmployeeDTO> getEmployeeById(Long id) {
+        Optional<EmployeeEntity> employeeEntity = employeeRepository.findById(id);
 
-        return modelMapper.map(employeeEntity, EmployeeDTO.class);
+        return employeeEntity.map((item) -> modelMapper.map(item, EmployeeDTO.class));
     }
 
     public List<EmployeeDTO> getEmployees() {
@@ -42,5 +41,33 @@ public class EmployeeService {
         EmployeeEntity toSaveEntity = modelMapper.map(payload, EmployeeEntity.class);
         EmployeeEntity employeeEntity = employeeRepository.save(toSaveEntity);
         return modelMapper.map(employeeEntity, EmployeeDTO.class);
+    }
+
+    public EmployeeDTO updatedEmployeeById(Long employeeId, EmployeeDTO payload) {
+        EmployeeEntity employeeEntity = modelMapper.map(payload, EmployeeEntity.class);
+        employeeEntity.setId(employeeId);
+        EmployeeEntity savedResult = employeeRepository.save(employeeEntity);
+        return modelMapper.map(savedResult, EmployeeDTO.class);
+
+    }
+
+    public boolean deleteEmployeeById(Long employeeId) {
+        boolean isExist = employeeRepository.existsById(employeeId);
+        if(!isExist) return false;
+        employeeRepository.deleteById(employeeId);
+        return true;
+    }
+
+    public EmployeeDTO updatedPartialEmployeeById(Long employeeId, Map<String, Object> payload) {
+        boolean isExists = employeeRepository.existsById(employeeId);
+        if(!isExists) return null;
+
+        EmployeeEntity employeeEntity = employeeRepository.findById(employeeId).get();
+        payload.forEach((field, value) -> {
+            Field fieldToBeUpdated = ReflectionUtils.findField(EmployeeEntity.class, field);
+            fieldToBeUpdated.setAccessible(true);
+            ReflectionUtils.setField(fieldToBeUpdated, employeeEntity, value);
+        });
+        return modelMapper.map(employeeRepository.save(employeeEntity), EmployeeDTO.class);
     }
 }
