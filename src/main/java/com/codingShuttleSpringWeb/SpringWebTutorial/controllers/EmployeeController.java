@@ -2,7 +2,7 @@ package com.codingShuttleSpringWeb.SpringWebTutorial.controllers;
 
 import com.codingShuttleSpringWeb.SpringWebTutorial.dto.EmployeeDTO;
 import com.codingShuttleSpringWeb.SpringWebTutorial.entities.EmployeeEntity;
-import com.codingShuttleSpringWeb.SpringWebTutorial.repositories.EmployeeRepository;
+import com.codingShuttleSpringWeb.SpringWebTutorial.services.EmployeeService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -13,28 +13,24 @@ import java.util.List;
 
 public class EmployeeController {
 
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
 
-    public EmployeeController(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
     }
 
     @GetMapping(path = "/{employeeId}")
-    public EmployeeEntity getEmployeeBtId(@PathVariable(name = "employeeId") Long id) {
-        // return new EmployeeDTO(id, "Fardeen", "fardeen@gmail.com", 26, LocalDate.of(2025, 12, 31), true);
-        return employeeRepository.findById(id).orElse(null);
+    public EmployeeDTO getEmployeeById(@PathVariable(name = "employeeId") Long id) {
+        return employeeService.getEmployeeById(id);
     }
 
     @GetMapping(path = "")
-    public List<EmployeeEntity> getEmployeeByFilters(@RequestParam(required = false) Integer age, @RequestParam(required = false) String sortBy) {
-//        return "This is the filters : " + age + " " + sortBy;
-        return this.employeeRepository.findAll();
+    public List<EmployeeDTO> getEmployees(@RequestParam(required = false) Integer age, @RequestParam(required = false) String sortBy) {
+        return employeeService.getEmployees();
     }
 
     @PostMapping(path = "")
-    public EmployeeEntity createEmployee(@RequestBody EmployeeEntity payload){
-//        payload.setId(100L);
-//        return payload;
-        return this.employeeRepository.save(payload);
+    public EmployeeDTO createEmployee(@RequestBody EmployeeDTO payload){
+        return employeeService.createEmployee(payload);
     }
 }
