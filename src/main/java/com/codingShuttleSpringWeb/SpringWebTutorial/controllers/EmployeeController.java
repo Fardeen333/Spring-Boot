@@ -2,6 +2,7 @@ package com.codingShuttleSpringWeb.SpringWebTutorial.controllers;
 
 import com.codingShuttleSpringWeb.SpringWebTutorial.dto.EmployeeDTO;
 import com.codingShuttleSpringWeb.SpringWebTutorial.services.EmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ public class EmployeeController {
     @GetMapping(path = "/{employeeId}")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable(name = "employeeId") Long id) {
         Optional<EmployeeDTO> employeeDTO = employeeService.getEmployeeById(id);
+                                                                                                                      
         return employeeDTO
                 .map(item -> ResponseEntity.ok(item))
                 .orElse(ResponseEntity.notFound().build());
@@ -35,7 +37,7 @@ public class EmployeeController {
     }
 
     @PostMapping(path = "")
-    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO payload){
+    public ResponseEntity<EmployeeDTO> createEmployee(@Valid  @RequestBody EmployeeDTO payload){
         EmployeeDTO savedEmployee = employeeService.createEmployee(payload);
         return new ResponseEntity<>(savedEmployee, HttpStatus.CREATED);
     }
