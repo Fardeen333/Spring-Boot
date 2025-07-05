@@ -2,6 +2,7 @@ package com.codingShuttleSpringWeb.SpringWebTutorial.services;
 
 import com.codingShuttleSpringWeb.SpringWebTutorial.dto.EmployeeDTO;
 import com.codingShuttleSpringWeb.SpringWebTutorial.entities.EmployeeEntity;
+import com.codingShuttleSpringWeb.SpringWebTutorial.exceptions.MyResourceNotFoundException;
 import com.codingShuttleSpringWeb.SpringWebTutorial.repositories.EmployeeRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.util.ReflectionUtils;
@@ -44,11 +45,17 @@ public class EmployeeService {
     }
 
     public EmployeeDTO updatedEmployeeById(Long employeeId, EmployeeDTO payload) {
+        boolean isExists = isExistsByEmployeeId(employeeId);
+        if(!isExists) throw new MyResourceNotFoundException("Employee With id : " + employeeId + " does not exists.");
         EmployeeEntity employeeEntity = modelMapper.map(payload, EmployeeEntity.class);
         employeeEntity.setId(employeeId);
         EmployeeEntity savedResult = employeeRepository.save(employeeEntity);
         return modelMapper.map(savedResult, EmployeeDTO.class);
 
+    }
+
+    public boolean isExistsByEmployeeId(Long id){
+        return employeeRepository.existsById(id);
     }
 
     public boolean deleteEmployeeById(Long employeeId) {
